@@ -23,42 +23,6 @@ out_dir = sys.argv[2]
 CLIP_MAX = 1.0
 CLIP_MIN = 0.0
 
-class Attacker:
-    def __init__(self, clip_max=CLIP_MAX, clip_min=CLIP_MIN):
-        self.clip_max = clip_max
-        self.clip_min = clip_min
-
-    def generate(self, model, x, y):
-        pass
-class BIM(Attacker):
-    def __init__(self, eps=0.1, eps_iter=0.01, n_iter=30, clip_max=CLIP_MAX, clip_min=CLIP_MIN):
-        super(BIM, self).__init__(clip_max, clip_min)
-        self.eps = eps
-        self.eps_iter = eps_iter
-        self.n_iter = n_iter
-
-    def generate(self, model, x, y):
-        model.eval()
-        nx = torch.unsqueeze(x, 0)
-        ny = y
-        nx.requires_grad = True
-        eta = torch.zeros(nx.shape).to(device)
-
-        for i in range(self.n_iter):
-            out = model(nx+eta)
-            loss = F.cross_entropy(out, ny)
-            loss.backward()
-
-            eta += self.eps_iter * torch.sign(nx.grad.data)
-            eta = torch.clamp(eta, -self.eps, self.eps)
-            nx.grad.data.zero_()
-
-        x_adv = nx + eta
-        x_adv = torch.clamp(x_adv, self.clip_min, self.clip_max)
-        x_adv = x_adv.squeeze(0)
-        
-        return x_adv.cpu().detach()
-
 def Reading_TrueLabels(path):
     rows = list(csv.reader(open(path, 'r')))
     TrueLabel = []
@@ -75,6 +39,28 @@ def Reading_Categories(path):
         Name.append(tmp[0])
     Name = np.array(Name).reshape(1000, 1)
     return Name
+
+def BIM(model, x, y, eps, eps_iter, n_iter, clip_max=CLIP_MAX, clip_min=CLIP_MIN):
+    model.eval()
+    nx = torch.unsqueeze(x, 0)
+    ny = y
+    nx.requires_grad = True
+    eta = torch.zeros(nx.shape).to(device)
+
+    for i in range(n_iter):
+        out = model(nx+eta)
+        loss = F.cross_entropy(out, ny)
+        loss.backward()
+
+        eta += eps_iter * torch.sign(nx.grad.data)
+        eta = torch.clamp(eta, -eps, eps)
+        nx.grad.data.zero_()
+
+    x_adv = nx + eta
+    x_adv = torch.clamp(x_adv, clip_min, clip_max)
+    x_adv = x_adv.squeeze(0)
+        
+    return x_adv.cpu().detach()    
 
 if __name__ == '__main__':
     pretrained_model = models.vgg19(pretrained=True)
@@ -96,7 +82,6 @@ if __name__ == '__main__':
 
     Categories = Reading_Categories('categories.csv')
 
-    attacker = BIM(eps=0.0195, eps_iter=0.008, n_iter=10, clip_max=CLIP_MAX, clip_min=CLIP_MIN)
     for i in range(200):
         trans = transforms.Compose([transforms.ToTensor()]) #range[0, 255] -> range[0.0, 1.0]
 
@@ -105,7 +90,7 @@ if __name__ == '__main__':
         image = trans(tmp1)
         tmp2 = image
             
-        image = attacker.generate(model, image.to(device), target[i].to(device))
+        image = BIM(model, image.to(device), target[i].to(device), eps=0.0195, eps_iter=0.008, n_iter=10)
 
         '''diff = np.array(tmp2-image, dtype=float)
         diff = np.abs(diff)
