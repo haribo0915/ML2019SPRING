@@ -90,7 +90,7 @@ if __name__ == '__main__':
         image = trans(tmp1)
         tmp2 = image
             
-        image = BIM(model, image.to(device), target[i].to(device), eps=0.0195, eps_iter=0.008, n_iter=10)
+        image = BIM(model, image.to(device), target[i].to(device), eps=0.018, eps_iter=0.005, n_iter=10)
 
         '''diff = np.array(tmp2-image, dtype=float)
         diff = np.abs(diff)
