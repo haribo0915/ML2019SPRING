@@ -63,7 +63,7 @@ def BIM(model, x, y, eps, eps_iter, n_iter, clip_max=CLIP_MAX, clip_min=CLIP_MIN
     return x_adv.cpu().detach()    
 
 if __name__ == '__main__':
-    pretrained_model = models.vgg19(pretrained=True)
+    pretrained_model = models.resnet50(pretrained=True)
     use_cuda=True
 
     device = torch.device("cuda" if (use_cuda and torch.cuda.is_available()) else "cpu")
