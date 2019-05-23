@@ -6,10 +6,10 @@ image_path = sys.argv[1]
 
 x_train = []
 for i in range(40000):
-	s = str(i+1).zfill(6)
+    s = str(i+1).zfill(6)
     name = s + '.jpg'
-	img = io.imread(os.path.join(image_path, name))
-	x_train.append(img)
+    img = io.imread(os.path.join(image_path, name))
+    x_train.append(img)
 x_train = np.array(x_train, dtype=float)
 x_train /= 255.0
 
