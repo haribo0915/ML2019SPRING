@@ -68,20 +68,20 @@ if __name__ == '__main__':
 
 	model_1 = load_model('model1.h5')
 	model_2 = load_model('model2.h5')
-	model_3 = load_model('model3.h5')
+	#model_3 = load_model('model3.h5')
 	model_4 = load_model('model4.h5')
 	model_5 = load_model('model5.h5')	
 
 	y1 = model_1.predict(x_test)
 	y2 = model_2.predict(x_test)
-	y3 = model_3.predict(x_test)
+	#y3 = model_3.predict(x_test)
 	y4 = model_4.predict(x_test)
 	y5 = model_5.predict(x_test)
 
 	y_test = []
 	cnt_1 = 0
 	for i in range(len(y1)):
-		y = (y1[i]+y2[i]+y3[i]+y4[i]+y5[i])/5
+		y = (y1[i]+y2[i]+y4[i]+y5[i])/4
 		if (y >= 0.5):
 			cnt_1 += 1
 			y_test.append(1)
